@@ -1,7 +1,34 @@
 defmodule Cnodex do
+  @moduledoc """
+  A module to help writing and maintaining C-nodes.
+  """
+
   use GenServer
   require Logger
 
+  @type init_args() :: %{
+    exec_path: binary(),
+    ready_line: binary(),
+    spawn_inactive_timeout: integer() | 5000,
+    sname: binary(),
+    hostname: binary(),
+    os_pid: integer()
+  }
+  @type pid_or_name() :: pid() | atom()
+
+  @doc """
+  Starts a GenServer that will start and monitor a C-Node.
+
+  ## Parameters
+
+    - `init_args`: A map providing configuration on how to start a C-Node.
+    
+      - `:exec_path` _required_ provide a path to the C-Node executable.
+      - `:ready_line` a custom message that is awaited on the STDOUT of the C-Node.
+      - `:spawn_inactive_timeout` set a timeout in milliseconds after the C-Node is considered
+        unresponsive before receiving the ready_line.
+  """
+  @spec start_link(init_args()) :: {:ok, pid()} | {:error, any()}
   def start_link(init_args, opts \\ []) do
     GenServer.start_link(__MODULE__, init_args, opts)
   end
@@ -25,11 +52,11 @@ defmodule Cnodex do
     init_cnode(state)
   end
 
-  def random_sname, do: :crypto.strong_rand_bytes(4) |> Base.encode16(case: :lower)
-  def node_hostname, do: Node.self() |> to_string |> String.split("@") |> List.last
-  def node_sname, do: Node.self() |> to_string |> String.split("@") |> List.first
+  defp random_sname, do: :crypto.strong_rand_bytes(4) |> Base.encode16(case: :lower)
+  defp node_hostname, do: Node.self() |> to_string |> String.split("@") |> List.last
+  defp node_sname, do: Node.self() |> to_string |> String.split("@") |> List.first
 
-  def init_cnode(%{cnode: cnode} = state) do
+  defp init_cnode(%{cnode: cnode} = state) do
     case establish_connection(state) do
       {:ok, state} -> {:ok, state}
       _ ->
@@ -38,7 +65,7 @@ defmodule Cnodex do
     end
   end
 
-  def establish_connection(%{cnode: cnode} = state) do
+  defp establish_connection(%{cnode: cnode} = state) do
     if Node.connect(cnode) do
       Logger.debug("connected to #{cnode}")
       Node.monitor(cnode, true)
@@ -48,7 +75,7 @@ defmodule Cnodex do
     end
   end
 
-  def spawn_cnode(%{
+  defp spawn_cnode(%{
     exec_path: exec_path,
     sname: sname,
     hostname: hostname
@@ -67,7 +94,7 @@ defmodule Cnodex do
     await_cnode_ready(port, state)
   end
 
-  def await_cnode_ready(port, %{
+  defp await_cnode_ready(port, %{
     ready_line: ready_line
   } = state) do
     spawn_inactive_timeout = Map.get(state, :spawn_inactive_timeout, 5000)
@@ -89,29 +116,50 @@ defmodule Cnodex do
     end
   end
 
-  def handle_info({:nodedown, _cnode}, state) do
+  defp handle_info({:nodedown, _cnode}, state) do
     {:stop, :nodedown, state}
   end
 
-  def handle_info(msg, state) do
+  defp handle_info(msg, state) do
     Logger.warn "unhandled handle_info: #{inspect msg}"
     {:noreply, state}
   end
 
-  def handle_call(:cnode, _from, %{cnode: cnode} = state) do
+  defp handle_call(:cnode, _from, %{cnode: cnode} = state) do
     {:reply, {:ok, cnode}, state}
   end
 
-  def terminate(_reason, %{os_pid: os_pid}) when os_pid != nil do
+  defp terminate(_reason, %{os_pid: os_pid}) when os_pid != nil do
     System.cmd("kill", ["-9", os_pid])
     :normal
   end
 
+  @doc """
+  Returns the `:"sname@host"` identifier for the C-Node.
+  With this you can leverage `Node.monitor/1` or `Kernel.send/2` for your own purposes.
+
+  ## Parameters
+
+    - `pid_or_name`: The pid or name of the Cnodex GenServer
+
+  """
+  @spec cnode(pid_or_name()) :: node()
   def cnode(pid_or_name) do
     {:ok, cnode} = GenServer.call(pid_or_name, :cnode)
     cnode
   end
 
+  @doc """
+  Call into the C-Node managed by Cnodex referenced by pid or name.
+  Returns the response or an error after a configurable timeout.
+
+  ## Parameters
+
+    - `pid_or_name`: The pid or name of the Cnodex GenServer
+    - `msg`: The message for the C-Node
+    - `timeoout`: (_optional_, default: 5000) the time in milliseconds that is waited for a response.
+  """
+  @spec call(pid_or_name(), any(), integer()) :: {:ok, any()} | {:error, :timeout}
   def call(pid_or_name, msg, timeout \\ 5000) do
     node = cnode(pid_or_name)
     send({nil, node}, msg)
