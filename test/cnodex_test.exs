@@ -3,7 +3,7 @@ defmodule CnodexTest do
   doctest Cnodex
 
   setup_all(_) do
-    Distributed.up
+    Cnodex.Distributed.up
   end
 
   test "greets the world" do

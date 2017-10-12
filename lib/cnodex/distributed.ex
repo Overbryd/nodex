@@ -1,4 +1,4 @@
-defmodule Distributed do
+defmodule Cnodex.Distributed do
 
   def up(master_sname \\ "primary") do
     spawn_epmd()

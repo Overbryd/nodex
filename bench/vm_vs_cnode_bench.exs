@@ -18,10 +18,10 @@ defmodule VmVsCnodeBench do
     Code.eval_quoted(@echo_module)
     local_pid = spawn(Echo, :listen, [])
     # start a distributed environment
-    Distributed.up
+    Cnodex.Distributed.up
     # spawn a slave
-    [{:ok, slave}] = Distributed.spawn_slaves(1)
-    Distributed.rpc(slave, Code, :eval_quoted, [@echo_module])
+    [{:ok, slave}] = Cnodex.Distributed.spawn_slaves(1)
+    Cnodex.Distributed.rpc(slave, Code, :eval_quoted, [@echo_module])
     remote_pid = Node.spawn_link(slave, Echo, :listen, [])
     # spawn a cnode
     {:ok, cnodex_pid} = Cnodex.start_link(%{exec_path: "priv/example_client"})
