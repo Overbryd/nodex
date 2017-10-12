@@ -6,12 +6,42 @@ defmodule Cnodex.Mixfile do
       app: :cnodex,
       version: "0.1.0",
       elixir: "~> 1.5",
-      # You can prepend make to your compilers if you like
-      # That way running `mix compile` will also compile your C-artifacts.
-      #
-      # compilers: [:make, :elixir, :app],
+      # When writing a package that depends on extra build steps
+      # include your custom mix compile task here:
+      # compilers: [:cnodex_make, :elixir, :app],
+      description: """
+        A module to help writing and maintaining c-nodes.
+      """,
+      package: package(),
       start_permanent: Mix.env == :prod,
       deps: deps()
+    ]
+  end
+
+  def package do
+    [
+      maintainers: ["Lukas Rieder"],
+      licenses: ["GNU LGPL"],
+      links: %{
+        "Github" => "https://github.com/Overbryd/cnodex",
+        "Issues" => "https://github.com/Overbryd/cnodex/issues"
+      },
+      files: [
+        "lib",
+        "test",
+        "mix.exs",
+        "README.md",
+        "LICENSE"
+        # When packaging a project that needs to compile extra stuff
+        # make sure you include these files and the priv/ directory
+        # in the hex package.
+        #
+        # "c_src",
+        # "priv/.gitignore",
+        # "Makefile",
+        # "Makefile.Darwin",
+        # "Makefile.Linux"
+      ]
     ]
   end
 
