@@ -1,5 +1,7 @@
 # Nodex
 
+![](https://github.com/Overbryd/nodex/blob/master/nodex.png?raw=true)
+
 A set of helper modules that enable you to work with **distributed elixir** and **c-nodes**.
 
 Available as a hex-package:
