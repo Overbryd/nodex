@@ -1,17 +1,15 @@
-defmodule Cnodex.Mixfile do
+defmodule Nodex.Mixfile do
   use Mix.Project
 
   def project do
     [
-      app: :cnodex,
+      app: :nodex,
       version: "0.1.0",
       elixir: "~> 1.5",
       # When writing a package that depends on extra build steps
       # include your custom mix compile task here:
-      # compilers: [:cnodex_make, :elixir, :app],
-      description: """
-        A module to help writing and maintaining c-nodes.
-      """,
+      # compilers: [:nodex_make, :elixir, :app],
+      description: "Nodex provides helping functionality around distributed Elixir.",
       package: package(),
       start_permanent: Mix.env == :prod,
       deps: deps()
@@ -23,8 +21,8 @@ defmodule Cnodex.Mixfile do
       maintainers: ["Lukas Rieder"],
       licenses: ["GNU LGPL"],
       links: %{
-        "Github" => "https://github.com/Overbryd/cnodex",
-        "Issues" => "https://github.com/Overbryd/cnodex/issues"
+        "Github" => "https://github.com/Overbryd/nodex",
+        "Issues" => "https://github.com/Overbryd/nodex/issues"
       },
       files: [
         "lib",
@@ -63,7 +61,7 @@ defmodule Cnodex.Mixfile do
   end
 end
 
-defmodule Mix.Tasks.Compile.CnodexMake do
+defmodule Mix.Tasks.Compile.NodexMake do
   @artifacts [
     "priv/example_client",
     "priv/just_exit"

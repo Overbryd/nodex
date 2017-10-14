@@ -1,6 +1,6 @@
-defmodule Cnodex do
+defmodule Nodex.Cnode do
   @moduledoc """
-  A module to help writing and maintaining C-nodes.
+  A module to help calling into and maintaining C-nodes.
   """
 
   use GenServer
@@ -9,7 +9,7 @@ defmodule Cnodex do
   @type init_args() :: %{
     exec_path: binary(),
     ready_line: binary(),
-    spawn_inactive_timeout: integer() | 5000,
+    spawn_inactive_timeout: integer(),
     sname: binary(),
     hostname: binary(),
     os_pid: integer()
@@ -22,7 +22,6 @@ defmodule Cnodex do
   ## Parameters
 
     - `init_args`: A map providing configuration on how to start a C-Node.
-    
       - `:exec_path` _required_ provide a path to the C-Node executable.
       - `:ready_line` a custom message that is awaited on the STDOUT of the C-Node.
       - `:spawn_inactive_timeout` set a timeout in milliseconds after the C-Node is considered
@@ -75,7 +74,7 @@ defmodule Cnodex do
     end
   end
 
-  defp spawn_cnode(%{
+  def spawn_cnode(%{
     exec_path: exec_path,
     sname: sname,
     hostname: hostname
@@ -116,31 +115,31 @@ defmodule Cnodex do
     end
   end
 
-  defp handle_info({:nodedown, _cnode}, state) do
+  def handle_info({:nodedown, _cnode}, state) do
     {:stop, :nodedown, state}
   end
 
-  defp handle_info(msg, state) do
+  def handle_info(msg, state) do
     Logger.warn "unhandled handle_info: #{inspect msg}"
     {:noreply, state}
   end
 
-  defp handle_call(:cnode, _from, %{cnode: cnode} = state) do
+  def handle_call(:cnode, _from, %{cnode: cnode} = state) do
     {:reply, {:ok, cnode}, state}
   end
 
-  defp terminate(_reason, %{os_pid: os_pid}) when os_pid != nil do
+  def terminate(_reason, %{os_pid: os_pid}) when os_pid != nil do
     System.cmd("kill", ["-9", os_pid])
     :normal
   end
 
   @doc """
   Returns the `:"sname@host"` identifier for the C-Node.
-  With this you can leverage `Node.monitor/1` or `Kernel.send/2` for your own purposes.
+  With this you can leverage `Node.monitor/2` or `Kernel.send/2` for your own purposes.
 
   ## Parameters
 
-    - `pid_or_name`: The pid or name of the Cnodex GenServer
+    - `pid_or_name`: The pid or name of the Cnode GenServer
 
   """
   @spec cnode(pid_or_name()) :: node()
@@ -150,12 +149,12 @@ defmodule Cnodex do
   end
 
   @doc """
-  Call into the C-Node managed by Cnodex referenced by pid or name.
+  Call into the C-Node managed by Cnode referenced by pid or name.
   Returns the response or an error after a configurable timeout.
 
   ## Parameters
 
-    - `pid_or_name`: The pid or name of the Cnodex GenServer
+    - `pid_or_name`: The pid or name of the Cnode GenServer
     - `msg`: The message for the C-Node
     - `timeoout`: (_optional_, default: 5000) the time in milliseconds that is waited for a response.
   """

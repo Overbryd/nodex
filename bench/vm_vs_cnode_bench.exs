@@ -18,17 +18,17 @@ defmodule VmVsCnodeBench do
     Code.eval_quoted(@echo_module)
     local_pid = spawn(Echo, :listen, [])
     # start a distributed environment
-    Cnodex.Distributed.up
+    Nodex.Distributed.up
     # spawn a slave
-    [{:ok, slave}] = Cnodex.Distributed.spawn_slaves(1)
-    Cnodex.Distributed.rpc(slave, Code, :eval_quoted, [@echo_module])
+    [slave] = Nodex.Distributed.spawn_slaves(1)
+    Nodex.Distributed.rpc(slave, Code, :eval_quoted, [@echo_module])
     remote_pid = Node.spawn_link(slave, Echo, :listen, [])
     # spawn a cnode
-    {:ok, cnodex_pid} = Cnodex.start_link(%{exec_path: "priv/example_client"})
+    {:ok, cnode_pid} = Nodex.Cnode.start_link(%{exec_path: "priv/example_client"})
     # get the node
-    cnode = Cnodex.cnode(cnodex_pid)
+    cnode = Nodex.Cnode.cnode(cnode_pid)
     # pass down references to benchmarks
-    {:ok, {local_pid, remote_pid, cnodex_pid, cnode}}
+    {:ok, {local_pid, remote_pid, cnode_pid, cnode}}
   end
 
   def response do
@@ -53,7 +53,7 @@ defmodule VmVsCnodeBench do
 
   bench "cnode" do
     {_, _, pid, _} = bench_context
-    {:ok, {:pong, "hello"}} = Cnodex.call(pid, {:ping, "hello"})
+    {:ok, {:pong, "hello"}} = Nodex.Cnode.call(pid, {:ping, "hello"})
   end
 
   bench "cnode direct" do
