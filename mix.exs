@@ -4,7 +4,7 @@ defmodule Nodex.Mixfile do
   def project do
     [
       app: :nodex,
-      version: "0.1.0",
+      version: "0.1.1",
       elixir: "~> 1.5",
       # When writing a package that depends on extra build steps
       # include your custom mix compile task here:

@@ -5,7 +5,7 @@ A set of helper modules that enable you to work with **distributed elixir** and 
 Available as a hex-package:
 
 ```elixir
-{:nodex, "~> 0.1.0"}
+{:nodex, "~> 0.1.1"}
 ```
 
 ## Documentation

@@ -34,7 +34,7 @@ defmodule Nodex.Distributed do
   iex> Nodex.Distributed.rpc(node, A, :greet, []) # this won't work, A is not present on the remote node
   iex> Nodex.Distributed.load_object_code(node, module, object_code)
   iex> Nodex.Distributed.rpc(node, A, :greet, [])
-  "hi from slave1@127.0.0.1"
+  {:ok, "hi from slave1@127.0.0.1"}
   ```
   """
 
@@ -186,7 +186,7 @@ defmodule Nodex.Distributed do
   def rpc(node, module, function, args) when is_atom(node) do
     case :rpc.block_call(node, module, function, args) do
       {:badrpc, _reason} = e -> e
-      res -> res
+      res -> {:ok, res}
     end
   end
 
