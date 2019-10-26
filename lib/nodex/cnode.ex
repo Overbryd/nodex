@@ -161,8 +161,15 @@ defmodule Nodex.Cnode do
   @spec call(pid_or_name(), any(), integer()) :: {:ok, any()} | {:error, :timeout}
   def call(pid_or_name, msg, timeout \\ 5000) do
     node = cnode(pid_or_name)
-    send({nil, node}, msg)
-    await_response(timeout)
+    current_pid = self()
+    child_pid = spawn(fn ->
+      send({nil, node}, msg)
+      response = await_response(timeout)
+      send(current_pid, {self(), response})
+    end)
+    receive do
+      {^child_pid, response} -> response
+    end
   end
 
   defp await_response(:infinite) do
