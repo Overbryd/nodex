@@ -129,7 +129,7 @@ defmodule Nodex.Cnode do
   end
 
   def terminate(_reason, %{os_pid: os_pid}) when os_pid != nil do
-    System.cmd("kill", ["-9", os_pid])
+    System.cmd("kill", ["-9", "#{os_pid}"])
     :normal
   end
 
